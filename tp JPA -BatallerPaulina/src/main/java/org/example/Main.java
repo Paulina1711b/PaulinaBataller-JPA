@@ -6,60 +6,108 @@ import javax.persistence.Persistence;
 
 public class Main {
     public static void main(String[] args) {
-        EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("example-unit");
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("example-unit");
 
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        System.out.println("en marcha Alberto");
+        EntityManager entityManager = emf.createEntityManager();
 
 
 
         try{
-            entityManager.getTransaction().begin();
+            entityManager.getTransaction().begin(); // Persistir una nueva entidad Cliente
 
-            Factura factura1 = Factura.builder().numero(12).fecha("10/09/2024").build();
-            Domicilio dom = Domicilio.builder().nombrecalle("Av.Santiago").numero(1222).build();
-            Cliente cliente= Cliente.builder().nombre("Paulina").apellido("Bataller").dni(42793521).build();
-            cliente.setDomicilio(dom);
-            dom.setCliente(cliente);
-            factura1.setCliente(cliente);
+            Factura factura1 = Factura.builder()
+                    .nro(15)
+                    .fecha("05/09/2024")
+                    .build();
 
-            Categoria perecederos= Categoria.builder().denominacion("").build();
-            Categoria lacteos= Categoria.builder().denominacion("lacteos").build();
-            Categoria limpieza= Categoria.builder().denominacion("limpieza").build();
+            Domicilio dom1 = Domicilio.builder()
+                    .nombreCalle("Concordia")
+                    .numero(590)
+                    .build();
 
-            Articulo articulo1= Articulo.builder().cantidad(200).denominacion("Yogurt Ser").precio(20).build();
-            Articulo articulo2= Articulo.builder().cantidad(300).denominacion("cif crema").precio(80).build();
+            Cliente cliente1 = Cliente.builder()
+                    .nombre("Paulina")
+                    .apellido("Bataller")
+                    .dni(45602188)
+                    .build();
 
-            articulo1.getCategorias().add(perecederos);
-            articulo1.getCategorias().add(lacteos);
-            lacteos.getArticulos().add(articulo1);
-            perecederos.getArticulos().add(articulo1);
+            cliente1.setDomicilio(dom1);
+            dom1.setCliente(cliente1);
 
-            articulo1.getCategorias().add(limpieza);
-            limpieza.getArticulos().add(articulo2);
+            factura1.setCliente(cliente1);
 
-            DetalleFactura det1= DetalleFactura.builder().cantidad(2).subtotal(40).build();
+            //creacion de las categorias
+            Categoria perecederos = Categoria.builder()
+                    .denominacionC("perecederos")
+                    .build();
 
-            articulo1.getDetalle().add(det1);
-            factura1.getDetalles().add(det1);
+            Categoria lacteos = Categoria.builder()
+                    .denominacionC("lacteos")
+                    .build();
+
+            Categoria limpieza = Categoria.builder()
+                    .denominacionC("limpieza")
+                    .build();
+
+            //creacion de los articulos
+            Articulo art1 = Articulo.builder()
+                    .cantidad(200)
+                    .denominacion("Yogurt Frutilla")
+                    .precio(1500)
+                    .build();
+
+            Articulo art2 = Articulo.builder()
+                    .cantidad(300)
+                    .denominacion("Detergente Magistral")
+                    .precio(2500)
+                    .build();
+
+            //asigno categorias a los articulos y los articulos a la categoria
+            art1.getCategorias().add(perecederos);
+            art1.getCategorias().add(lacteos);
+            lacteos.getArticulos().add(art1);
+            perecederos.getArticulos().add(art1);
+
+            art2.getCategorias().add(limpieza);
+            limpieza.getArticulos().add(art2);
+
+            //creo detalles de facturas
+            DetalleFactura det1 = DetalleFactura.builder()
+                    .build();
+
+            det1.setArticulo(art1);
+            det1.setCantidad(2);
+            det1.setSubtotal(40);
+
+            //bidireccionales
+            art1.getDetalle().add(det1);
+            factura1.getDetalleFacturas().add(det1);
             det1.setFactura(factura1);
 
-            DetalleFactura det2= DetalleFactura.builder().cantidad(1).subtotal(80).build();
-            articulo2.getDetalle().add(det2);
-            factura1.getDetalles().add(det2);
+            //creo otro detalle
+            DetalleFactura det2 = DetalleFactura.builder()
+                    .build();
+
+            det2.setArticulo(art2);
+            det2.setCantidad(1);
+            det2.setSubtotal(80);
+
+            art2.getDetalle().add(det2);
+            factura1.getDetalleFacturas().add(det2);
             det2.setFactura(factura1);
 
-            factura1.setTotal(120);
+            //seteo el total de la factura
+            factura1.setTotal(1200);
+
             entityManager.persist(factura1);
-
-
-            entityManager.flush();
+            entityManager.flush(); //para limpiar la conexion
             entityManager.getTransaction().commit();
+
         }catch (Exception e){
             entityManager.getTransaction().rollback();
         }
         // Cerrar el EntityManager y el EntityManagerFactory
         entityManager.close();
-        entityManagerFactory.close();
+        emf.close();
     }
 }
